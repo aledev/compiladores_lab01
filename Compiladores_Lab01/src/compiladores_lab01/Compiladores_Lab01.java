@@ -6,6 +6,7 @@
 package compiladores_lab01;
 
 import cl.usach.compiladores.laboratorio1.Automata;
+import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 
@@ -28,7 +29,7 @@ public class Compiladores_Lab01 {
             System.out.println("------GENERADOR DE AUTOMATAS------");
             System.out.println("----------------------------------");
             System.out.println("1) UNION");
-            System.out.println("2) CONCATENACI�N");
+            System.out.println("2) CONCATENACIÓN");
             System.out.println("3) CLAUSURA");
             System.out.println("4) CLAUSURA POSITIVA");
             System.out.println("5) SALIR");
@@ -84,12 +85,17 @@ public class Compiladores_Lab01 {
                     //</editor-fold>
                 case 4:
                     mensaje = "AUTOMATA CLAUSURA POSITIVA GENERADO";
+                    automata = automataCom.crearAutomataClausuraPositiva(args[0].trim().toString(), listaAlfabeto);
                     break;
                 case 5:
                     break;
             }
 
-            automataCom.crearArchivoAutomata(automata.toString());
+
+            String path = new File(".").getCanonicalPath();
+            path += "\\src\\compiladores_lab01\\files\\resultadoAutomata.txt";
+            
+            automataCom.crearArchivoAutomata(path,automata.toString());
 
             System.out.println("-------------------------------------");
             System.out.println(mensaje);
