@@ -22,7 +22,11 @@ public class Compiladores_Lab01 {
     public static void main(String[] args) {
        try{
             Automata automataCom = new Automata();
-            List<String> listaAlfabeto = automataCom.listaAlfabeto(args[0].trim());
+            String path = new File(".").getCanonicalPath();
+            
+            String pathArchivoInicio = path + "\\src\\compiladores_lab01\\files\\automatasEntrada.txt";
+            
+            List<String> listaAlfabeto = automataCom.listaAlfabeto(pathArchivoInicio);
 
             //<editor-fold defaultstate="collapsed" desc="Menu Principal">            
             System.out.println("----------------------------------");
@@ -54,7 +58,7 @@ public class Compiladores_Lab01 {
                     //<editor-fold defaultstate="collapsed" desc="Automata Unión Generado">                    
                     mensaje = "AUTOMATA UNION GENERADO";
 
-                    List<String> listaEstado = automataCom.listaEstado(args[0].trim(), listaAlfabeto);
+                    List<String> listaEstado = automataCom.listaEstado(pathArchivoInicio, listaAlfabeto);
                     listaAlfabeto.size();
                     listaEstado.size();
                     List<Integer> listaEstadoNuevo = automataCom.listaNuevoEstado(listaAlfabeto, listaEstado);
@@ -80,22 +84,20 @@ public class Compiladores_Lab01 {
                 case 3:
                     //<editor-fold defaultstate="collapsed" desc="Automata Clasura Generado">                   
                     mensaje = "AUTOMATA CLAUSURA GENERADO";
-                    automata = automataCom.crearAutomataClausura(args[0].trim().toString(), listaAlfabeto);
+                    automata = automataCom.crearAutomataClausura(pathArchivoInicio, listaAlfabeto);
                     break;
                     //</editor-fold>
                 case 4:
                     mensaje = "AUTOMATA CLAUSURA POSITIVA GENERADO";
-                    automata = automataCom.crearAutomataClausuraPositiva(args[0].trim().toString(), listaAlfabeto);
+                    automata = automataCom.crearAutomataClausuraPositiva(pathArchivoInicio, listaAlfabeto);
                     break;
                 case 5:
                     break;
             }
-
-
-            String path = new File(".").getCanonicalPath();
-            path += "\\src\\compiladores_lab01\\files\\resultadoAutomata.txt";
             
-            automataCom.crearArchivoAutomata(path,automata.toString());
+            String archivoFinal = path + "\\src\\compiladores_lab01\\files\\resultadoAutomata.txt";
+            
+            automataCom.crearArchivoAutomata(archivoFinal, automata.toString());
 
             System.out.println("-------------------------------------");
             System.out.println(mensaje);
