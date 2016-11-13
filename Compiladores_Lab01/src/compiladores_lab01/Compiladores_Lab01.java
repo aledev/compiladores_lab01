@@ -80,6 +80,7 @@ public class Compiladores_Lab01 {
                     //</editor-fold>
                 case 2:
                     mensaje = "AUTOMATA CONCATENACIÓN GENERADO";
+                    //automata = automataCom.crearAutomataConcatenacion(, centroUnion)
                     break;
                 case 3:
                     //<editor-fold defaultstate="collapsed" desc="Automata Clasura Generado">                   

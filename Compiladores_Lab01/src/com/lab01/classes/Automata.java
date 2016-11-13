@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import static java.lang.System.console;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -263,7 +264,7 @@ public class Automata {
             int inicio = nuevaCadena.indexOf(simbolo);
             String valor = nuevaCadena.substring((inicio - 1), inicio);
             cadenaRetorno.append("1");
-            cadenaRetorno.append("e");
+            cadenaRetorno.append("ε");
             cadenaRetorno.append(valor);
             cadenaRetorno.append("#");
             nuevaCadena = new String();
@@ -288,7 +289,7 @@ public class Automata {
             int fin = nuevaCadena.lastIndexOf(simbolo);
             String valor = nuevaCadena.substring(fin + 1, fin + 2);
             cadenaRetorno.append(valor);
-            cadenaRetorno.append("e");
+            cadenaRetorno.append("ε");
             cadenaRetorno.append(ultimoEstado);
             if (cont < alfabeto.size()) {
                 cadenaRetorno.append("#");
@@ -301,9 +302,107 @@ public class Automata {
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="crearAutomataConcatenacion">
+    public String crearAutomataConcatenacion(String archivo, List<String> listaAlfabeto) throws Exception{	
+        //LECTURA DEL ARCHIVO
+        String automata = new String();
+        FileReader f = new FileReader(archivo);
+        BufferedReader b = new BufferedReader(f);
+        StringBuilder automataConcat = new StringBuilder();
+        int cantidadLinea = 0;
+
+        try {
+            while ((automata = b.readLine()) != null) {
+                //FORMAR AUTOMATA        		
+                StringTokenizer dividir = new StringTokenizer(automata, "#");
+
+                if (dividir.countTokens() > 1) {
+
+                    //AGREGAR ε AL ALFABETO
+                    listaAlfabeto.add("ε");
+
+                    int estadoMenor = 0;
+                    int estadoMayor = 0;
+                    int estadoMenorR = 0;
+
+                    int totalTransiciones = dividir.countTokens();
+                    StringBuilder nuevoAutomata = new StringBuilder();
+                    int contadorTransicion = 1;
+
+                    while (dividir.hasMoreTokens()) {
+
+                        String transicion = dividir.nextToken().trim();
+                        int estadoMenorAux = Character.getNumericValue(transicion.charAt(0));
+                        if(estadoMenorR == 0){
+                            estadoMenorR = estadoMenorAux;
+                        }
+                        else{
+                            if(estadoMenorAux < estadoMenorR){
+                                estadoMenorR = estadoMenorAux;
+                            }
+                        }
+                        
+                        int contadorAlfabeto = 1;
+                        
+                         for (String simbolo : listaAlfabeto) {
+                            //DIVIDIR ESTADO
+                            StringTokenizer dividirEstado = new StringTokenizer(transicion, simbolo);
+                            if (dividirEstado.countTokens() > 1) {
+                                int contEstado = 0;
+                                while (dividirEstado.hasMoreTokens()) {
+                                    int estadoMasUno = Integer.parseInt(dividirEstado.nextToken()) + 1;
+
+                                    //LOGICA ESTADO MAYOR
+                                    if (estadoMasUno > estadoMayor) {
+                                        estadoMayor = estadoMasUno;
+                                    }
+
+                                    //LOGICA ESTADO MENOR
+                                    if ((contadorTransicion == 1) && (contEstado == 0)) {
+                                        estadoMenor = estadoMasUno;
+                                    }
+
+                                    if (estadoMasUno <= estadoMenor) {
+                                        estadoMenor = estadoMasUno;
+                                    }
+                              
+                                    contEstado++;
+                                }
+                            }
+
+                            contadorAlfabeto++;
+                        }
+                       
+                        transicion = transicion.replace("e", "ε");
+                        nuevoAutomata.append(transicion);
+                        nuevoAutomata.append("#");
+
+                        contadorTransicion++;
+                    }
+                  
+                    //GENERAR TRANSICIONES PARA FORMAR CLAUSURA.(x)+
+                    nuevoAutomata.append(estadoMayor);
+                    nuevoAutomata.append("ε");
+                    nuevoAutomata.append(estadoMenorR);
+                    
+                    automataConcat.append(nuevoAutomata);
+                }
+                //FIN FORMAR AUTOMATA               
+                cantidadLinea++;
+            }
+        } catch (Exception e) {
+            throw new Exception(e);
+        } finally {
+            b.close();
+        }
+
+        return automataConcat.toString();
+    }
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="crearArchivoAutomata">        
-    public void crearArchivoAutomata(String automata) throws Exception{
-        String archivoResultado = new String("automataResultado.txt");
+    public void crearArchivoAutomata(String path, String automata) throws Exception{
+        String archivoResultado = new String(path);
         File archivo = new File(archivoResultado);
         BufferedWriter bw = null;
 
@@ -315,6 +414,19 @@ public class Automata {
                 bw = new BufferedWriter(new FileWriter(archivo));
                 bw.write(automata);
             }
+            
+            String automataPrint = "";
+            // Obtenemos las transiciones
+            String[] trxArray = automata.split("#");
+            // Recorremos las transiciones
+            for(int x = 0; x < trxArray.length; x++){
+                automataPrint += String.format("Transición %d => %s\n", (x + 1), trxArray[x]);
+            }
+            // Mostramos el resultado en la consola
+            System.out.println("Resultado:");
+            System.out.println(automataPrint);
+            
+            System.out.format("Archivo guardado en: %s", archivo.getPath());
         } catch (Exception e) {
             throw new Exception(e);
         } finally {
@@ -345,8 +457,8 @@ public class Automata {
 
                 if (dividir.countTokens() > 1) {
 
-                    //AGREGAR e AL ALFABETO
-                    listaAlfabeto.add("e");
+                    //AGREGAR ε AL ALFABETO
+                    listaAlfabeto.add("ε");
 
                     int estadoMenor = 0;
                     int estadoMayor = 0;
@@ -404,7 +516,7 @@ public class Automata {
 
                     //GENERAR TRANSICIONES PARA FORMAR CLAUSURA.(x)*
                     extremoAutomata.append("1");
-                    extremoAutomata.append("e");
+                    extremoAutomata.append("ε");
                     extremoAutomata.append(estadoMenor);
                     extremoAutomata.append("#");
                     //
@@ -413,16 +525,16 @@ public class Automata {
                     }
 
                     nuevoAutomata.append(estadoMayor);
-                    nuevoAutomata.append("e");
+                    nuevoAutomata.append("ε");
                     nuevoAutomata.append(estadoMenor);
                     extremoAutomata.append(nuevoAutomata.toString());
                     extremoAutomata.append("#");
                     extremoAutomata.append(estadoMayor);
-                    extremoAutomata.append("e");
+                    extremoAutomata.append("ε");
                     extremoAutomata.append(estadoMayor + 1);
                     extremoAutomata.append("#");
                     extremoAutomata.append("1");
-                    extremoAutomata.append("e");
+                    extremoAutomata.append("ε");
                     extremoAutomata.append(estadoMayor + 1);
                 }
                 //FIN FORMAR AUTOMATA               
@@ -436,6 +548,111 @@ public class Automata {
 
         return extremoAutomata.toString();
     }
-    //</editor-fold>        
+    //</editor-fold>      
+    
+    //<editor-fold defaultstate="collapsed" desc="crearAutomataClausuraPositiva">       
+    public String crearAutomataClausuraPositiva(String archivo,List<String> listaAlfabeto) throws Exception{	
+        //LECTURA DEL ARCHIVO
+        String automata = new String();
+        FileReader f = new FileReader(archivo);
+        BufferedReader b = new BufferedReader(f);
+        StringBuilder extremoAutomata = new StringBuilder();
+        int cantidadLinea = 0;
+
+        try {
+
+            while ((automata = b.readLine()) != null) {
+
+                if (cantidadLinea > 1) {
+                    throw new Exception("Para esta opción el automata debe estar expresado en una línea. ");
+                }
+
+                //FORMAR AUTOMATA        		
+                StringTokenizer dividir = new StringTokenizer(automata, "#");
+
+                if (dividir.countTokens() > 1) {
+
+                    //AGREGAR ε AL ALFABETO
+                    listaAlfabeto.add("ε");
+
+                    int estadoMenor = 0;
+                    int estadoMayor = 0;
+                    int estadoMenorR = 0;
+
+                    int totalTransiciones = dividir.countTokens();
+                    StringBuilder nuevoAutomata = new StringBuilder();
+                    int contadorTransicion = 1;
+
+                    while (dividir.hasMoreTokens()) {
+
+                        String transicion = dividir.nextToken().trim();
+                        int estadoMenorAux = Character.getNumericValue(transicion.charAt(0));
+                        if(estadoMenorR == 0){
+                            estadoMenorR = estadoMenorAux;
+                        }
+                        else{
+                            if(estadoMenorAux < estadoMenorR){
+                                estadoMenorR = estadoMenorAux;
+                            }
+                        }
+                        
+                        int contadorAlfabeto = 1;
+                        
+                         for (String simbolo : listaAlfabeto) {
+                            //DIVIDIR ESTADO
+                            StringTokenizer dividirEstado = new StringTokenizer(transicion, simbolo);
+                            if (dividirEstado.countTokens() > 1) {
+                                int contEstado = 0;
+                                while (dividirEstado.hasMoreTokens()) {
+                                    int estadoMasUno = Integer.parseInt(dividirEstado.nextToken()) + 1;
+
+                                    //LOGICA ESTADO MAYOR
+                                    if (estadoMasUno > estadoMayor) {
+                                        estadoMayor = estadoMasUno;
+                                    }
+
+                                    //LOGICA ESTADO MENOR
+                                    if ((contadorTransicion == 1) && (contEstado == 0)) {
+                                        estadoMenor = estadoMasUno;
+                                    }
+
+                                    if (estadoMasUno <= estadoMenor) {
+                                        estadoMenor = estadoMasUno;
+                                    }
+                              
+                                    contEstado++;
+                                }
+                            }
+
+                            contadorAlfabeto++;
+                        }
+                       
+                        transicion = transicion.replace("e", "ε");
+                        nuevoAutomata.append(transicion);
+                        nuevoAutomata.append("#");
+
+                        contadorTransicion++;
+                    }
+                  
+                    //GENERAR TRANSICIONES PARA FORMAR CLAUSURA.(x)+
+                    nuevoAutomata.append(estadoMayor);
+                    nuevoAutomata.append("ε");
+                    nuevoAutomata.append(estadoMenorR);
+                    
+                    extremoAutomata.append(nuevoAutomata);
+                }
+                //FIN FORMAR AUTOMATA               
+                cantidadLinea++;
+            }
+        } catch (Exception e) {
+            throw new Exception(e);
+        } finally {
+            b.close();
+        }
+
+        return extremoAutomata.toString();
+    }
+    //</editor-fold>   
+    
     //</editor-fold>        
 }
