@@ -39,7 +39,7 @@ public class AFND {
    
    public void mostrarTransiciones(){
        for(int x = 0; x < this.lstTransiciones.size(); x++){
-           Console.
+
        }
    }
    //</editor-fold>
