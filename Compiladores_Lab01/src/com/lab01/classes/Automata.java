@@ -1,5 +1,6 @@
 package cl.usach.compiladores.laboratorio1;
 
+import com.lab01.objects.TransitionObj;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -304,98 +305,185 @@ public class Automata {
 
     //<editor-fold defaultstate="collapsed" desc="crearAutomataConcatenacion">
     public String crearAutomataConcatenacion(String archivo, List<String> listaAlfabeto) throws Exception{	
+        
+        //<editor-fold defaultstate="collapsed" desc="declaración de variables ">
         //LECTURA DEL ARCHIVO
+        ArrayList<TransitionObj> trxList01 = new ArrayList<>();
+        ArrayList<TransitionObj> trxList02 = new ArrayList<>();
+        
         String automata = new String();
         FileReader f = new FileReader(archivo);
         BufferedReader b = new BufferedReader(f);
         StringBuilder automataConcat = new StringBuilder();
         int cantidadLinea = 0;
-
+        //</editor-fold>
+        
         try {
+            //AGREGAR 'ε' AL ALFABETO
+            listaAlfabeto.add("e");
+            
+            // Recorremos las lineas del archivo
             while ((automata = b.readLine()) != null) {
                 //FORMAR AUTOMATA        		
                 StringTokenizer dividir = new StringTokenizer(automata, "#");
 
                 if (dividir.countTokens() > 1) {
-
-                    //AGREGAR ε AL ALFABETO
-                    listaAlfabeto.add("ε");
-
-                    int estadoMenor = 0;
-                    int estadoMayor = 0;
-                    int estadoMenorR = 0;
-
+                    // Obtenemos el total de transiciones
                     int totalTransiciones = dividir.countTokens();
                     StringBuilder nuevoAutomata = new StringBuilder();
                     int contadorTransicion = 1;
-
+                    
+                    // Recorremos las transiciones
                     while (dividir.hasMoreTokens()) {
-
-                        String transicion = dividir.nextToken().trim();
-                        int estadoMenorAux = Character.getNumericValue(transicion.charAt(0));
-                        if(estadoMenorR == 0){
-                            estadoMenorR = estadoMenorAux;
-                        }
-                        else{
-                            if(estadoMenorAux < estadoMenorR){
-                                estadoMenorR = estadoMenorAux;
-                            }
-                        }
+                        // Creamos un nuevo objeto de tipo TransitionObj
+                        // Para almacenar la transición actual del automata
+                        TransitionObj currentTrx = new TransitionObj();
+                        // Obtenemos la transicion actual
+                        String transicion = dividir.nextToken();
                         
-                        int contadorAlfabeto = 1;
-                        
-                         for (String simbolo : listaAlfabeto) {
-                            //DIVIDIR ESTADO
-                            StringTokenizer dividirEstado = new StringTokenizer(transicion, simbolo);
-                            if (dividirEstado.countTokens() > 1) {
-                                int contEstado = 0;
-                                while (dividirEstado.hasMoreTokens()) {
-                                    int estadoMasUno = Integer.parseInt(dividirEstado.nextToken()) + 1;
-
-                                    //LOGICA ESTADO MAYOR
-                                    if (estadoMasUno > estadoMayor) {
-                                        estadoMayor = estadoMasUno;
+                        // Recorremos los simbolos del alfabeto
+                        for (String simbolo : listaAlfabeto) {
+                            // Preguntamos si la transición actual contiene el simbolo actual
+                            if(transicion.contains(simbolo)){
+                                // En caso de contenerlo, hacemos un split del string
+                                // para poder obtener el conjunto de inicio, el conjunto de termino
+                                // y el alfabeto de la transición para almacenarlos en el objeto "currentTrx"
+                                String[] trxSplit = transicion.split(simbolo);
+                                
+                                // Chequeamos que el split haya obtenido más de un elemento
+                                if(trxSplit.length > 1){
+                                    // Seteamos las propiedades del objeto "currentTrx"
+                                    currentTrx.setTrxDesde(Integer.parseInt(trxSplit[0]));
+                                    currentTrx.setTrxChar(simbolo);
+                                    currentTrx.setTrxHasta(Integer.parseInt(trxSplit[1]));
+                                        
+                                    // Si la línea actual es igual a 1
+                                    // Guardamos el objeto en la lista de transiciones 1 que corresponde
+                                    // a las transiciones del primer automáta del archivo txt
+                                    if(cantidadLinea == 1){
+                                        trxList01.add(currentTrx);
                                     }
-
-                                    //LOGICA ESTADO MENOR
-                                    if ((contadorTransicion == 1) && (contEstado == 0)) {
-                                        estadoMenor = estadoMasUno;
+                                    else{
+                                        // En caso contrario lo guardamos en la segunda lista
+                                        trxList02.add(currentTrx);
                                     }
-
-                                    if (estadoMasUno <= estadoMenor) {
-                                        estadoMenor = estadoMasUno;
-                                    }
-                              
-                                    contEstado++;
+                                    
+                                    // Detenemos la iteración
+                                    break;
                                 }
                             }
-
-                            contadorAlfabeto++;
                         }
-                       
-                        transicion = transicion.replace("e", "ε");
-                        nuevoAutomata.append(transicion);
-                        nuevoAutomata.append("#");
-
+                        // Aumentamos el contador
                         contadorTransicion++;
                     }
-                  
-                    //GENERAR TRANSICIONES PARA FORMAR CLAUSURA.(x)+
-                    nuevoAutomata.append(estadoMayor);
-                    nuevoAutomata.append("ε");
-                    nuevoAutomata.append(estadoMenorR);
-                    
-                    automataConcat.append(nuevoAutomata);
                 }
                 //FIN FORMAR AUTOMATA               
                 cantidadLinea++;
             }
+            
+            // Generamos 4 variables para obtener los siguientes datos:
+            // Conjunto menor del Automáta 1
+            // Conjunto mayor del Automáta 1
+            // Conjunto menor del Automáta 2
+            // Conjunto mayor del Automáta 2
+            int menor1 = 0;
+            int mayor1 = 0;
+            int menor2 = 0;
+            int mayor2 = 0;
+            
+            // Creamos una lista en el que guardaremos el automata concatenado
+            ArrayList<TransitionObj> trxListFin = new ArrayList<>();
+
+            // Recorremos las transiciones del automata 01
+            // Para poder obtener los conjuntos "menor" y "mayor"
+            for(int x = 0; x < trxList01.size(); x++){       
+                if(menor1 == 0){
+                    menor1 = trxList01.get(x).getTrxDesde();
+                }
+                else{
+                    if(trxList01.get(x).getTrxDesde() < menor1){
+                        menor1 = trxList01.get(x).getTrxDesde();
+                    }
+                }
+                
+                if(trxList01.get(x).getTrxHasta() > mayor1){
+                    mayor1 = trxList01.get(x).getTrxHasta();
+                }
+            }
+ 
+            // Recorremos las transiciones del automata 02
+            // Para poder obtener los conjuntos "menor" y "mayor"
+            for(int x = 0; x < trxList02.size(); x++){
+                if(menor2 == 0){
+                    menor2 = trxList02.get(x).getTrxDesde();
+                }
+                else{
+                    if(trxList02.get(x).getTrxDesde() < menor1){
+                        menor2 = trxList02.get(x).getTrxDesde();
+                    }
+                }
+                
+                if(trxList02.get(x).getTrxHasta() > mayor2){
+                    mayor2 = trxList02.get(x).getTrxHasta();
+                }
+            }
+            
+            // Recorremos nuevamente el automáta 02 
+            // Y aumentamos los valores de los conjuntos dado que en el automata final
+            // no se pueden repetir los mismos numeros para los conjuntos
+            for(int x = 0; x < trxList02.size(); x++){
+                TransitionObj trxAux = trxList02.get(x);
+                trxAux.setTrxDesde(trxAux.getTrxDesde() + mayor1);
+                trxAux.setTrxHasta(trxAux.getTrxHasta() + mayor1);   
+                trxAux.setTrxChar(trxAux.getTrxChar());
+            }
+            
+            // Recorremos el automata 01 y lo guardamos en la lista final
+            for(int x = 0; x < trxList01.size(); x++){       
+                TransitionObj trxAux = trxList01.get(x);
+                
+                if(trxAux.getTrxChar().contains("e")){
+                    trxAux.setTrxChar("ε");
+                }
+                
+                trxListFin.add(trxAux);
+            }
+            
+            // Creamos una nueva transición que va desde el automata 01
+            // al automata 02 con un caracter epsilon 'ε'
+            TransitionObj trxAuxConcat = new TransitionObj(mayor1, mayor1 + menor2, "ε");
+            trxListFin.add(trxAuxConcat);
+            
+            // Recorremos el automata 02 y lo guardamos en la lista final
+            for(int x = 0; x < trxList02.size(); x++){
+                TransitionObj trxAux = trxList02.get(x);
+                
+                if(trxAux.getTrxChar().contains("e")){
+                    trxAux.setTrxChar("ε");
+                }
+                
+                trxListFin.add(trxAux);
+            }
+            
+            // Recorremos el automata final y obtenemos las transiciones
+            // para poder almacenar dicha transición en el StringBuilder
+            // "automataConcat" que contendrá todas las transiciones del 
+            // automata y separará dichos elementos con un numeral '#'
+            for(int x = 0; x < trxListFin.size(); x++){
+                 TransitionObj trxAux = trxListFin.get(x);
+                
+                automataConcat.append(trxAux.getTrxDesde()+
+                        trxAux.getTrxChar() + 
+                        trxAux.getTrxHasta() + "#");
+            }
+           
         } catch (Exception e) {
             throw new Exception(e);
         } finally {
             b.close();
         }
-
+        
+        // Retornamos el string con el automata concatenado
         return automataConcat.toString();
     }
     //</editor-fold>

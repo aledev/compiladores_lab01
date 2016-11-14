@@ -13,7 +13,7 @@ public class TransitionObj {
     // <editor-fold defaultstate="collapsed" desc="propiedades privadas">
     private int trxDesde;
     private int trxHasta;
-    private char trxChar;
+    private String trxChar;
     // </editor-fold>    
     
     //<editor-fold defaultstate="collapsed" desc="constructores">
@@ -21,7 +21,7 @@ public class TransitionObj {
         
     }
     
-    public TransitionObj(int trxDesde, int trxHasta, char trxChar){
+    public TransitionObj(int trxDesde, int trxHasta, String trxChar){
         this.trxDesde = trxDesde;
         this.trxHasta = trxHasta;
         this.trxChar = trxChar;
@@ -37,7 +37,7 @@ public class TransitionObj {
         return this.trxHasta;
     }
     
-    public char getTrxChar(){
+    public String getTrxChar(){
         return this.trxChar;
     }
     //</editor-fold>
@@ -51,8 +51,8 @@ public class TransitionObj {
         this.trxHasta = trxHasta;
     }
     
-    public void setTrxChar(char trxChar){
-        this.trxChar = this.trxChar;
+    public void setTrxChar(String trxChar){
+        this.trxChar = trxChar;
     }
     //</editor-fold>
 }
