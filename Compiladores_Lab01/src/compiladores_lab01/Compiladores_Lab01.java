@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package compiladores_lab01;
-
 import cl.usach.compiladores.laboratorio1.Automata;
 import java.io.File;
 import java.util.List;
